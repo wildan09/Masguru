@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Space Mono", monospace;
+  --font-body: "Space Grotesk", sans-serif;
+
+  --color-yellow: #FFE500;
+  --color-blue: #1E90FF;
+  --color-black: #0a0a0a;
+  --color-white: #ffffff;
+  --color-off-white: #fafafa;
+
+  --shadow-neu-sm: 3px 3px 0px #0a0a0a;
+  --shadow-neu-md: 5px 5px 0px #0a0a0a;
+  --shadow-neu-lg: 8px 8px 0px #0a0a0a;
+
+  --animate-marquee: marquee 20s linear infinite;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+}
+
+@layer base {
+  body {
+    font-family: var(--font-body);
+    color: var(--color-black);
+    background-color: var(--color-white);
+  }
+}
+
+/* Custom Neubrutalism Utilities */
+.border-black-heavy {
+  border: 3px solid #0a0a0a;
+}
+
+.border-black-heavy-4 {
+  border: 4px solid #0a0a0a;
+}
+
+.transition-neu {
+  transition: all 0.12s ease;
+}
