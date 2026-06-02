@@ -137,8 +137,8 @@
           </template>
           <template v-else>
             <iframe 
-              v-if="lookerStudioUrl" 
-              :src="lookerStudioUrl" 
+              v-if="processedLookerUrl" 
+              :src="processedLookerUrl" 
               style="border: 0; width: 100%; height: 100%;" 
               allowfullscreen 
               sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
@@ -193,6 +193,24 @@ const filteredSubmissions = computed(() => {
   return submissions.value.filter(sub => 
     sub.student_name?.toLowerCase().includes(query)
   );
+});
+
+const processedLookerUrl = computed(() => {
+  if (!lookerStudioUrl.value) return '';
+  let url = lookerStudioUrl.value.trim();
+  
+  // Extract URL from iframe tag if user accidentally pasted the whole embed code
+  const iframeMatch = url.match(/src="([^"]+)"/);
+  if (iframeMatch) {
+    url = iframeMatch[1];
+  }
+  
+  // Auto-convert standard reporting URLs to embed URLs
+  if (url.includes('/reporting/') && !url.includes('/embed/')) {
+    url = url.replace('/reporting/', '/embed/reporting/');
+  }
+  
+  return url;
 });
 
 async function handleSubmit() {
