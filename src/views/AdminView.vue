@@ -130,7 +130,7 @@
       </div>
 
       <!-- TAB content: TIPS -->
-      <div v-if="activeTab === 'tips'" class="flex flex-col gap-12">
+      <div v-if="activeTab === 'tips'" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- Add Tip Form -->
         <NeuCard :hoverable="false" class="h-fit">
           <h3 class="font-body text-xl font-bold mb-4">Add Tip & Trick</h3>
