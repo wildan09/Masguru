@@ -38,54 +38,18 @@
       </div>
 
       <!-- TAB content: PROJECTS -->
-      <div v-if="activeTab === 'projects'" class="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-8">
-        <!-- Add Project Form -->
-        <NeuCard :hoverable="false" class="h-fit">
-          <h3 class="font-body text-xl font-bold mb-4">Add Project</h3>
-          <form @submit.prevent="handleAddProject" class="flex flex-col gap-4">
-            <div>
-              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Title</label>
-              <input v-model="projectForm.title" type="text" required class="px-3 py-2 border-2 border-black w-full text-sm outline-none" placeholder="e.g. Portfolio Site" />
-            </div>
-            <div>
-              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Description</label>
-              <textarea v-model="projectForm.description" required rows="3" class="px-3 py-2 border-2 border-black w-full text-sm outline-none" placeholder="Short description of the project..."></textarea>
-            </div>
-            <div>
-              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Tags (comma separated)</label>
-              <input v-model="projectForm.tagsInput" type="text" class="px-3 py-2 border-2 border-black w-full text-sm outline-none" placeholder="LARAVEL, MYSQL, VUE" />
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Demo URL</label>
-                <input v-model="projectForm.demo_url" type="text" class="px-3 py-2 border-2 border-black w-full text-sm outline-none" placeholder="#" />
-              </div>
-              <div>
-                <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">GitHub URL</label>
-                <input v-model="projectForm.github_url" type="text" class="px-3 py-2 border-2 border-black w-full text-sm outline-none" placeholder="#" />
-              </div>
-            </div>
-            <div>
-              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Category</label>
-              <select v-model="projectForm.category" class="px-3 py-2 border-2 border-black w-full text-sm outline-none bg-white">
-                <option value="web">Web</option>
-                <option value="mobile">Mobile</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div>
-              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Highlight Image (Max 5MB)</label>
-              <input type="file" accept="image/*" @change="(e) => handleFileSelect(e, 'project')" class="px-3 py-2 border-2 border-black w-full text-sm outline-none bg-white cursor-pointer" />
-            </div>
-            <NeuButton type="submit" variant="yellow" class="mt-2 w-full" :disabled="isUploadingProject">
-              {{ isUploadingProject ? 'UPLOADING...' : 'SAVE PROJECT' }}
-            </NeuButton>
-          </form>
-        </NeuCard>
-
+      <div v-if="activeTab === 'projects'">
         <!-- Projects List Table -->
         <NeuCard :hoverable="false" class="h-fit">
-          <h3 class="font-body text-xl font-bold mb-4">Existing Projects</h3>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-body text-xl font-bold">Projects</h3>
+            <button
+              @click="openAddProjectModal"
+              class="bg-yellow text-black border-2 border-black px-4 py-2 font-body font-bold text-xs uppercase cursor-pointer shadow-[3px_3px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-neu flex items-center gap-1.5"
+            >
+              <span class="text-base leading-none">+</span> Add Project
+            </button>
+          </div>
           <div class="overflow-x-auto">
             <table class="w-full border-collapse">
               <thead>
@@ -93,39 +57,41 @@
                   <th class="p-3 text-left border-2 border-black">Title</th>
                   <th class="p-3 text-left border-2 border-black">Category</th>
                   <th class="p-3 text-left border-2 border-black">Tags</th>
+                  <th class="p-3 text-left border-2 border-black">Description</th>
                   <th class="p-3 text-center border-2 border-black">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <template v-if="isLoading">
                   <tr v-for="i in 3" :key="`skel-proj-${i}`" class="border-2 border-black">
-                    <td colspan="4" class="p-3 border-2 border-black">
+                    <td colspan="5" class="p-3 border-2 border-black">
                       <NeuSkeleton variant="text" />
                     </td>
                   </tr>
                 </template>
                 <template v-else>
                   <tr v-for="p in projects" :key="p.id" class="border-2 border-black font-body text-sm hover:bg-gray-50">
-                    <td class="p-3 border-2 border-black font-bold">{{ p.title }}</td>
-                    <td class="p-3 border-2 border-black uppercase text-xs font-semibold">{{ p.category }}</td>
+                    <td class="p-3 border-2 border-black font-bold whitespace-nowrap">{{ p.title }}</td>
+                    <td class="p-3 border-2 border-black uppercase text-xs font-semibold whitespace-nowrap">{{ p.category }}</td>
                     <td class="p-3 border-2 border-black">
-                      <span v-for="t in p.tags" :key="t" class="inline-block bg-yellow text-[10px] font-bold px-1.5 py-0.5 border border-black mr-1 uppercase">
+                      <span v-for="t in p.tags" :key="t" class="inline-block bg-yellow text-[10px] font-bold px-1.5 py-0.5 border border-black mr-1 mb-0.5 uppercase">
                         {{ t }}
                       </span>
                     </td>
+                    <td class="p-3 border-2 border-black text-[#555] max-w-xs truncate">{{ p.description }}</td>
                     <td class="p-3 border-2 border-black text-center">
                       <div class="flex items-center justify-center gap-2">
-                        <button @click="openEditProject(p)" class="bg-black text-yellow border-2 border-black px-2 py-1 font-bold text-xs uppercase cursor-pointer hover:bg-yellow hover:text-black transition-neu">
+                        <button @click="openEditProject(p)" class="bg-black text-yellow border-2 border-black px-2 py-1 font-bold text-xs uppercase cursor-pointer hover:bg-yellow hover:text-black transition-neu whitespace-nowrap">
                           Edit
                         </button>
-                        <button @click="handleDeleteProject(p.id)" class="bg-red-500 text-white border-2 border-black px-2 py-1 font-bold text-xs uppercase cursor-pointer hover:bg-red-600 transition-neu">
+                        <button @click="handleDeleteProject(p.id)" class="bg-red-500 text-white border-2 border-black px-2 py-1 font-bold text-xs uppercase cursor-pointer hover:bg-red-600 transition-neu whitespace-nowrap">
                           Delete
                         </button>
                       </div>
                     </td>
                   </tr>
                   <tr v-if="projects.length === 0">
-                    <td colspan="4" class="p-8 text-center text-gray-500 italic">No projects found. Add your first project using the form.</td>
+                    <td colspan="5" class="p-8 text-center text-gray-500 italic">No projects found. Click "+ Add Project" to add your first project.</td>
                   </tr>
                 </template>
               </tbody>
@@ -135,50 +101,18 @@
       </div>
 
       <!-- TAB content: TIPS -->
-      <div v-if="activeTab === 'tips'" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Add Tip Form -->
-        <NeuCard :hoverable="false" class="h-fit">
-          <h3 class="font-body text-xl font-bold mb-4">Add Tip & Trick</h3>
-          <form @submit.prevent="handleAddTip" class="flex flex-col gap-4">
-            <div>
-              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Title</label>
-              <input v-model="tipForm.title" type="text" required class="px-3 py-2 border-2 border-black w-full text-sm outline-none" placeholder="e.g. Master Flexbox in CSS" />
-            </div>
-            <div>
-              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Description</label>
-              <textarea v-model="tipForm.description" required rows="2" class="px-3 py-2 border-2 border-black w-full text-sm outline-none" placeholder="Short preview of the tip..."></textarea>
-            </div>
-            <div>
-              <div class="flex justify-between items-center mb-1">
-                <label class="font-body text-[10px] font-bold uppercase tracking-wider block">Article Content</label>
-                <label class="font-body text-[10px] font-bold uppercase tracking-wider bg-black text-yellow px-2 py-1 cursor-pointer hover:bg-yellow hover:text-black border-2 border-black transition-colors">
-                  + Insert Image
-                  <input type="file" accept="image/*" class="hidden" @change="handleInsertImageToArticle" />
-                </label>
-              </div>
-              <textarea v-model="tipForm.content" required rows="15" class="px-3 py-2 border-2 border-black w-full text-sm outline-none font-body" placeholder="Write your full article here... Markdown supported!"></textarea>
-            </div>
-            <div>
-              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Category</label>
-              <input v-model="tipForm.category" type="text" class="px-3 py-2 border-2 border-black w-full text-sm outline-none" placeholder="PROGRAMMING, WEB, GIT" />
-            </div>
-            <div>
-              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Link / URL</label>
-              <input v-model="tipForm.url" type="text" class="px-3 py-2 border-2 border-black w-full text-sm outline-none" placeholder="#" />
-            </div>
-            <div>
-              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Highlight Image (Max 5MB)</label>
-              <input type="file" accept="image/*" @change="(e) => handleFileSelect(e, 'tip')" class="px-3 py-2 border-2 border-black w-full text-sm outline-none bg-white cursor-pointer" />
-            </div>
-            <NeuButton type="submit" variant="blue" class="mt-2 w-full text-white" :disabled="isUploadingTip">
-              {{ isUploadingTip ? 'UPLOADING...' : 'SAVE TIP & TRICK' }}
-            </NeuButton>
-          </form>
-        </NeuCard>
-
+      <div v-if="activeTab === 'tips'">
         <!-- Tips List Table -->
         <NeuCard :hoverable="false" class="h-fit">
-          <h3 class="font-body text-xl font-bold mb-4">Existing Tips & Tricks</h3>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-body text-xl font-bold">Tips & Tricks</h3>
+            <button
+              @click="openAddTipModal"
+              class="bg-black text-yellow border-2 border-black px-4 py-2 font-body font-bold text-xs uppercase cursor-pointer shadow-[3px_3px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-neu flex items-center gap-1.5"
+            >
+              <span class="text-base leading-none">+</span> Add Tip
+            </button>
+          </div>
           <div class="overflow-x-auto">
             <table class="w-full border-collapse">
               <thead>
@@ -186,35 +120,40 @@
                   <th class="p-3 text-left border-2 border-black">Title</th>
                   <th class="p-3 text-left border-2 border-black">Category</th>
                   <th class="p-3 text-left border-2 border-black">Description</th>
+                  <th class="p-3 text-left border-2 border-black">URL</th>
                   <th class="p-3 text-center border-2 border-black">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <template v-if="isLoading">
                   <tr v-for="i in 3" :key="`skel-tip-${i}`" class="border-2 border-black">
-                    <td colspan="4" class="p-3 border-2 border-black">
+                    <td colspan="5" class="p-3 border-2 border-black">
                       <NeuSkeleton variant="text" />
                     </td>
                   </tr>
                 </template>
                 <template v-else>
                   <tr v-for="t in tips" :key="t.id" class="border-2 border-black font-body text-sm hover:bg-gray-50">
-                    <td class="p-3 border-2 border-black font-bold">{{ t.title }}</td>
-                    <td class="p-3 border-2 border-black font-semibold text-xs text-blue uppercase">{{ t.category }}</td>
+                    <td class="p-3 border-2 border-black font-bold whitespace-nowrap">{{ t.title }}</td>
+                    <td class="p-3 border-2 border-black font-semibold text-xs text-blue uppercase whitespace-nowrap">{{ t.category }}</td>
                     <td class="p-3 border-2 border-black max-w-xs truncate text-[#555]">{{ t.description }}</td>
+                    <td class="p-3 border-2 border-black">
+                      <a v-if="t.url && t.url !== '#'" :href="t.url" target="_blank" class="text-blue hover:underline font-bold text-xs truncate max-w-[120px] inline-block">Link</a>
+                      <span v-else class="text-gray-400 text-xs">-</span>
+                    </td>
                     <td class="p-3 border-2 border-black text-center">
                       <div class="flex items-center justify-center gap-2">
-                        <button @click="openEditTip(t)" class="bg-black text-yellow border-2 border-black px-2 py-1 font-bold text-xs uppercase cursor-pointer hover:bg-yellow hover:text-black transition-neu">
+                        <button @click="openEditTip(t)" class="bg-black text-yellow border-2 border-black px-2 py-1 font-bold text-xs uppercase cursor-pointer hover:bg-yellow hover:text-black transition-neu whitespace-nowrap">
                           Edit
                         </button>
-                        <button @click="handleDeleteTip(t.id)" class="bg-red-500 text-white border-2 border-black px-2 py-1 font-bold text-xs uppercase cursor-pointer hover:bg-red-600 transition-neu">
+                        <button @click="handleDeleteTip(t.id)" class="bg-red-500 text-white border-2 border-black px-2 py-1 font-bold text-xs uppercase cursor-pointer hover:bg-red-600 transition-neu whitespace-nowrap">
                           Delete
                         </button>
                       </div>
                     </td>
                   </tr>
                   <tr v-if="tips.length === 0">
-                    <td colspan="4" class="p-8 text-center text-gray-500 italic">No tips found. Add your first tip using the form.</td>
+                    <td colspan="5" class="p-8 text-center text-gray-500 italic">No tips found. Click "+ Add Tip" to add your first tip & trick.</td>
                   </tr>
                 </template>
               </tbody>
@@ -346,6 +285,170 @@ create table submissions (
         </NeuCard>
       </div>
     </div>
+
+    <!-- =========================================== -->
+    <!-- ADD PROJECT MODAL                           -->
+    <!-- =========================================== -->
+    <Teleport to="body">
+      <div
+        v-if="addProjectModal.open"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        @click.self="closeAddProjectModal"
+      >
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+        <!-- Modal Box -->
+        <div class="relative bg-white border-4 border-black shadow-[8px_8px_0px_#000] w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <!-- Modal Header -->
+          <div class="bg-yellow text-black px-6 py-4 flex items-center justify-between sticky top-0 z-10 border-b-4 border-black">
+            <div>
+              <span class="font-body text-[10px] font-bold uppercase tracking-widest text-black/60 block mb-0.5">NEW ENTRY</span>
+              <h2 class="font-display text-xl font-bold uppercase leading-tight">Add Project</h2>
+            </div>
+            <button
+              @click="closeAddProjectModal"
+              class="w-9 h-9 flex items-center justify-center border-2 border-black text-black font-bold text-lg hover:bg-black hover:text-yellow transition-neu"
+            >✕</button>
+          </div>
+
+          <!-- Modal Form -->
+          <form @submit.prevent="handleAddProject" class="p-6 flex flex-col gap-4">
+            <div>
+              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Title *</label>
+              <input v-model="projectForm.title" type="text" required class="px-3 py-2 border-2 border-black w-full text-sm outline-none focus:border-yellow transition-colors" placeholder="e.g. Portfolio Site" />
+            </div>
+            <div>
+              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Description *</label>
+              <textarea v-model="projectForm.description" required rows="3" class="px-3 py-2 border-2 border-black w-full text-sm outline-none focus:border-yellow transition-colors" placeholder="Short description of the project..."></textarea>
+            </div>
+            <div>
+              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Tags (comma separated)</label>
+              <input v-model="projectForm.tagsInput" type="text" class="px-3 py-2 border-2 border-black w-full text-sm outline-none focus:border-yellow transition-colors" placeholder="LARAVEL, MYSQL, VUE" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Demo URL</label>
+                <input v-model="projectForm.demo_url" type="text" class="px-3 py-2 border-2 border-black w-full text-sm outline-none focus:border-yellow transition-colors" placeholder="#" />
+              </div>
+              <div>
+                <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">GitHub URL</label>
+                <input v-model="projectForm.github_url" type="text" class="px-3 py-2 border-2 border-black w-full text-sm outline-none focus:border-yellow transition-colors" placeholder="#" />
+              </div>
+            </div>
+            <div>
+              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Category</label>
+              <select v-model="projectForm.category" class="px-3 py-2 border-2 border-black w-full text-sm outline-none bg-white focus:border-yellow transition-colors">
+                <option value="web">Web</option>
+                <option value="mobile">Mobile</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Highlight Image (Max 5MB)</label>
+              <input type="file" accept="image/*" @change="(e) => handleFileSelect(e, 'project')" class="px-3 py-2 border-2 border-black w-full text-sm outline-none bg-white cursor-pointer" />
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3 mt-2">
+              <button
+                type="button"
+                @click="closeAddProjectModal"
+                class="flex-1 px-4 py-2.5 border-2 border-black font-body font-bold text-xs uppercase cursor-pointer bg-white hover:bg-gray-100 transition-neu"
+              >Cancel</button>
+              <button
+                type="submit"
+                :disabled="isUploadingProject"
+                class="flex-1 px-4 py-2.5 border-2 border-black font-body font-bold text-xs uppercase cursor-pointer bg-yellow text-black shadow-[3px_3px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#000] disabled:opacity-60 disabled:cursor-not-allowed transition-neu"
+              >
+                {{ isUploadingProject ? 'UPLOADING...' : 'SAVE PROJECT' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- =========================================== -->
+    <!-- ADD TIP MODAL                               -->
+    <!-- =========================================== -->
+    <Teleport to="body">
+      <div
+        v-if="addTipModal.open"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        @click.self="closeAddTipModal"
+      >
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+        <!-- Modal Box -->
+        <div class="relative bg-white border-4 border-black shadow-[8px_8px_0px_#000] w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <!-- Modal Header -->
+          <div class="bg-black text-white px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+            <div>
+              <span class="font-body text-[10px] font-bold uppercase tracking-widest text-yellow block mb-0.5">NEW ENTRY</span>
+              <h2 class="font-display text-xl font-bold uppercase leading-tight">Add Tip & Trick</h2>
+            </div>
+            <button
+              @click="closeAddTipModal"
+              class="w-9 h-9 flex items-center justify-center border-2 border-yellow text-yellow font-bold text-lg hover:bg-yellow hover:text-black transition-neu"
+            >✕</button>
+          </div>
+
+          <!-- Modal Form -->
+          <form @submit.prevent="handleAddTip" class="p-6 flex flex-col gap-4">
+            <div>
+              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Title *</label>
+              <input v-model="tipForm.title" type="text" required class="px-3 py-2 border-2 border-black w-full text-sm outline-none focus:border-yellow transition-colors" placeholder="e.g. Master Flexbox in CSS" />
+            </div>
+            <div>
+              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Description *</label>
+              <textarea v-model="tipForm.description" required rows="2" class="px-3 py-2 border-2 border-black w-full text-sm outline-none focus:border-yellow transition-colors" placeholder="Short preview of the tip..."></textarea>
+            </div>
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="font-body text-[10px] font-bold uppercase tracking-wider block">Article Content *</label>
+                <label class="font-body text-[10px] font-bold uppercase tracking-wider bg-black text-yellow px-2 py-1 cursor-pointer hover:bg-yellow hover:text-black border-2 border-black transition-colors">
+                  + Insert Image
+                  <input type="file" accept="image/*" class="hidden" @change="handleInsertImageToArticle" />
+                </label>
+              </div>
+              <textarea v-model="tipForm.content" required rows="12" class="px-3 py-2 border-2 border-black w-full text-sm outline-none font-body focus:border-yellow transition-colors" placeholder="Write your full article here... Markdown supported!"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Category</label>
+                <input v-model="tipForm.category" type="text" class="px-3 py-2 border-2 border-black w-full text-sm outline-none focus:border-yellow transition-colors" placeholder="PROGRAMMING, WEB, GIT" />
+              </div>
+              <div>
+                <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Link / URL</label>
+                <input v-model="tipForm.url" type="text" class="px-3 py-2 border-2 border-black w-full text-sm outline-none focus:border-yellow transition-colors" placeholder="#" />
+              </div>
+            </div>
+            <div>
+              <label class="font-body text-[10px] font-bold uppercase tracking-wider mb-1 block">Highlight Image (Max 5MB)</label>
+              <input type="file" accept="image/*" @change="(e) => handleFileSelect(e, 'tip')" class="px-3 py-2 border-2 border-black w-full text-sm outline-none bg-white cursor-pointer" />
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3 mt-2">
+              <button
+                type="button"
+                @click="closeAddTipModal"
+                class="flex-1 px-4 py-2.5 border-2 border-black font-body font-bold text-xs uppercase cursor-pointer bg-white hover:bg-gray-100 transition-neu"
+              >Cancel</button>
+              <button
+                type="submit"
+                :disabled="isUploadingTip"
+                class="flex-1 px-4 py-2.5 border-2 border-black font-body font-bold text-xs uppercase cursor-pointer bg-yellow text-black shadow-[3px_3px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#000] disabled:opacity-60 disabled:cursor-not-allowed transition-neu"
+              >
+                {{ isUploadingTip ? 'UPLOADING...' : 'SAVE TIP & TRICK' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- =========================================== -->
     <!-- EDIT PROJECT MODAL                          -->
@@ -623,6 +726,43 @@ const editTipModal = reactive<{
   data: { title: '', description: '', content: '', category: 'PROGRAMMING', url: '', image_url: '' }
 });
 
+// ---- Add modal state ----
+const addProjectModal = reactive({ open: false });
+const addTipModal = reactive({ open: false });
+
+function openAddProjectModal() {
+  projectForm.title = '';
+  projectForm.description = '';
+  projectForm.tagsInput = '';
+  projectForm.demo_url = '';
+  projectForm.github_url = '';
+  projectForm.category = 'web';
+  projectImageFile.value = null;
+  addProjectModal.open = true;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAddProjectModal() {
+  addProjectModal.open = false;
+  document.body.style.overflow = '';
+}
+
+function openAddTipModal() {
+  tipForm.title = '';
+  tipForm.description = '';
+  tipForm.content = '';
+  tipForm.category = 'PROGRAMMING';
+  tipForm.url = '';
+  tipImageFile.value = null;
+  addTipModal.open = true;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAddTipModal() {
+  addTipModal.open = false;
+  document.body.style.overflow = '';
+}
+
 // ---- Open / close edit modals ----
 function openEditProject(p: any) {
   editProjectModal.id = p.id;
@@ -779,6 +919,7 @@ async function handleAddProject() {
     projectImageFile.value = null;
 
     projects.value = await getProjects();
+    closeAddProjectModal();
     alert('Project saved successfully!');
   } catch (error: any) {
     alert('Error saving project: ' + error.message);
@@ -855,6 +996,7 @@ async function handleAddTip() {
     tipImageFile.value = null;
 
     tips.value = await getTips();
+    closeAddTipModal();
     alert('Tip & Trick saved successfully!');
   } catch (error: any) {
     alert('Error saving tip: ' + error.message);
