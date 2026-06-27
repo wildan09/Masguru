@@ -230,6 +230,24 @@ export async function deleteProject(id: number | string) {
   return true;
 }
 
+export async function updateProject(id: number | string, project: { title: string; description: string; tags: string[]; demo_url: string; github_url: string; category: string; image_url?: string }) {
+  if (supabase) {
+    const { data, error } = await supabase
+      .from('projects')
+      .update(project)
+      .eq('id', id)
+      .select();
+    if (!error) return data;
+    console.error('Supabase updateProject error, updating LocalStorage instead:', error);
+  }
+
+  const local = JSON.parse(localStorage.getItem('portofolio_projects') || '[]');
+  const idx = local.findIndex((p: any) => p.id.toString() === id.toString());
+  if (idx !== -1) local[idx] = { ...local[idx], ...project };
+  localStorage.setItem('portofolio_projects', JSON.stringify(local));
+  return [local[idx]];
+}
+
 // --- TIPS SERVICE ---
 export async function getTips() {
   if (supabase) {
@@ -271,6 +289,24 @@ export async function deleteTip(id: number | string) {
   const updated = local.filter((t: any) => t.id !== id);
   localStorage.setItem('portofolio_tips', JSON.stringify(updated));
   return true;
+}
+
+export async function updateTip(id: number | string, tip: { title: string; description: string; content?: string; category: string; url: string; image_url?: string }) {
+  if (supabase) {
+    const { data, error } = await supabase
+      .from('tips')
+      .update(tip)
+      .eq('id', id)
+      .select();
+    if (!error) return data;
+    console.error('Supabase updateTip error, updating LocalStorage instead:', error);
+  }
+
+  const local = JSON.parse(localStorage.getItem('portofolio_tips') || '[]');
+  const idx = local.findIndex((t: any) => t.id.toString() === id.toString());
+  if (idx !== -1) local[idx] = { ...local[idx], ...tip };
+  localStorage.setItem('portofolio_tips', JSON.stringify(local));
+  return [local[idx]];
 }
 
 export async function getTipById(id: number | string) {
