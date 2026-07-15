@@ -6,7 +6,6 @@ import ProjectsView from '../views/ProjectsView.vue'
 import TipsView from '../views/TipsView.vue'
 import TipDetailView from '../views/TipDetailView.vue'
 import SubmissionView from '../views/SubmissionView.vue'
-import ContactView from '../views/ContactView.vue'
 import AdminView from '../views/AdminView.vue'
 import LoginView from '../views/LoginView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
@@ -51,11 +50,6 @@ const router = createRouter({
       component: SubmissionView
     },
     {
-      path: '/contact',
-      name: 'contact',
-      component: ContactView
-    },
-    {
       path: '/login',
       name: 'login',
       component: LoginView
@@ -79,14 +73,13 @@ router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
   
   if (requiresAuth) {
-    // Check inactivity timeout (6 hours = 21600000 ms)
+    // Check inactivity timeout (3 hours = 10800000 ms)
     const lastActivity = localStorage.getItem('last_activity');
     if (lastActivity) {
       const elapsed = Date.now() - parseInt(lastActivity, 10);
-      if (elapsed > 6 * 60 * 60 * 1000) {
+      if (elapsed > 3 * 60 * 60 * 1000) {
         await logout();
-        alert('Your session has expired due to inactivity (6 hours). Please log in again.');
-        next('/login');
+        next('/login?reason=session_expired');
         return;
       }
     }

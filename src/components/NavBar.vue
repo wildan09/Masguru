@@ -13,7 +13,7 @@
         <router-link to="/projects" active-class="!text-yellow" class="font-body font-bold text-[11px] uppercase tracking-wider text-white px-2 py-2 hover:text-yellow transition-neu">PROJECTS</router-link>
         <router-link to="/tips" active-class="!text-yellow" class="font-body font-bold text-[11px] uppercase tracking-wider text-white px-2 py-2 hover:text-yellow transition-neu">TIPS & TRICKS</router-link>
         <router-link to="/submission" active-class="!text-yellow" class="font-body font-bold text-[11px] uppercase tracking-wider text-white px-2 py-2 hover:text-yellow transition-neu">SUBMISSION</router-link>
-        <router-link to="/contact" active-class="!bg-black !text-yellow" class="font-body font-bold text-[11px] uppercase tracking-wider bg-yellow text-black px-4 py-2 border-2 border-[#0a0a0a] shadow-[2px_2px_0px_#ffffff] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#ffffff] transition-neu">CONTACT</router-link>
+        <a href="https://wa.me/6285647359433" target="_blank" rel="noopener noreferrer" class="font-body font-bold text-[11px] uppercase tracking-wider bg-yellow text-black px-4 py-2 border-2 border-[#0a0a0a] shadow-[2px_2px_0px_#ffffff] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#ffffff] transition-neu">CONTACT</a>
       </div>
 
       <!-- Mobile Hamburger Button -->
@@ -33,7 +33,7 @@
       <router-link @click="isOpen = false" to="/projects" active-class="!text-yellow" class="font-body font-bold text-xs uppercase tracking-wider text-white py-2 hover:text-yellow transition-neu">PROJECTS</router-link>
       <router-link @click="isOpen = false" to="/tips" active-class="!text-yellow" class="font-body font-bold text-xs uppercase tracking-wider text-white py-2 hover:text-yellow transition-neu">TIPS & TRICKS</router-link>
       <router-link @click="isOpen = false" to="/submission" active-class="!text-yellow" class="font-body font-bold text-xs uppercase tracking-wider text-white py-2 hover:text-yellow transition-neu">SUBMISSION</router-link>
-      <router-link @click="isOpen = false" to="/contact" class="font-body font-bold text-xs uppercase tracking-wider bg-yellow text-black px-4 py-2 mt-2 w-fit border-2 border-transparent hover:bg-white transition-neu">CONTACT</router-link>
+      <a href="https://wa.me/6285647359433" target="_blank" rel="noopener noreferrer" @click="isOpen = false" class="font-body font-bold text-xs uppercase tracking-wider bg-yellow text-black px-4 py-2 mt-2 w-fit border-2 border-transparent hover:bg-white transition-neu">CONTACT</a>
     </div>
   </nav>
 </template>

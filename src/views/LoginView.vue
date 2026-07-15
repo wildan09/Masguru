@@ -11,7 +11,13 @@
       </p>
 
       <form @submit.prevent="handleLogin" class="flex flex-col gap-4">
-        <div v-if="errorMsg" class="bg-[#ff4d4d] border-2 border-black p-3 mb-2">
+        <!-- Session Expired Notice -->
+      <div v-if="sessionExpired" class="bg-orange-500 border-2 border-black p-3 mb-4 flex items-center gap-2">
+        <span class="text-lg">🔒</span>
+        <p class="font-body text-xs font-bold text-white uppercase">Sesi berakhir karena tidak aktif (3 jam). Silakan login kembali.</p>
+      </div>
+
+      <div v-if="errorMsg" class="bg-[#ff4d4d] border-2 border-black p-3 mb-2">
           <p class="font-body text-xs font-bold text-white uppercase">{{ errorMsg }}</p>
         </div>
 
@@ -60,15 +66,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { login } from '../services/supabase';
 
 const router = useRouter();
+const route = useRoute();
 const email = ref('');
 const password = ref('');
 const isLoading = ref(false);
 const errorMsg = ref('');
+const sessionExpired = ref(false);
+
+onMounted(() => {
+  if (route.query.reason === 'session_expired') {
+    sessionExpired.value = true;
+  }
+});
 
 async function handleLogin() {
   isLoading.value = true;

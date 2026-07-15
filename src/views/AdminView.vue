@@ -614,10 +614,72 @@ create table submissions (
       </div>
     </Teleport>
   </div>
+
+  <!-- =========================================== -->
+  <!-- SESSION EXPIRY WARNING MODAL                -->
+  <!-- =========================================== -->
+  <Teleport to="body">
+    <Transition name="session-modal">
+      <div
+        v-if="showSessionWarning"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      >
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+
+        <!-- Modal Box -->
+        <div class="relative bg-white border-4 border-black shadow-[8px_8px_0px_#000] w-full max-w-sm">
+          <!-- Warning Header -->
+          <div class="bg-red-500 text-white px-6 py-4 flex items-center gap-3 border-b-4 border-black">
+            <span class="text-2xl">⚠️</span>
+            <div>
+              <span class="font-body text-[10px] font-bold uppercase tracking-widest opacity-80 block mb-0.5">KEAMANAN SESI</span>
+              <h2 class="font-display text-lg font-bold uppercase leading-tight">Sesi Akan Berakhir</h2>
+            </div>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="p-6">
+            <p class="font-body text-sm text-gray-700 leading-relaxed mb-4">
+              Anda tidak aktif selama beberapa waktu. Sesi akan otomatis berakhir dalam:
+            </p>
+
+            <!-- Countdown -->
+            <div class="flex items-center justify-center gap-0 mb-6">
+              <div class="bg-black text-yellow border-2 border-black px-4 py-3 text-center min-w-[70px]">
+                <div class="font-display text-3xl font-bold leading-none">{{ sessionCountdownDisplay.split(':')[0] }}</div>
+                <div class="font-body text-[9px] uppercase tracking-wider mt-1 opacity-70">Menit</div>
+              </div>
+              <div class="bg-black text-white border-y-2 border-black px-2 py-3">
+                <div class="font-display text-3xl font-bold leading-none">:</div>
+              </div>
+              <div class="bg-black text-yellow border-2 border-black px-4 py-3 text-center min-w-[70px]">
+                <div class="font-display text-3xl font-bold leading-none">{{ sessionCountdownDisplay.split(':')[1] }}</div>
+                <div class="font-body text-[9px] uppercase tracking-wider mt-1 opacity-70">Detik</div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3">
+              <button
+                @click="handleLogout"
+                class="flex-1 px-4 py-2.5 border-2 border-black font-body font-bold text-xs uppercase cursor-pointer bg-white hover:bg-gray-100 transition-neu"
+              >Logout Sekarang</button>
+              <button
+                @click="extendSession"
+                id="extend-session-btn"
+                class="flex-1 px-4 py-2.5 border-2 border-black font-body font-bold text-xs uppercase cursor-pointer bg-yellow text-black shadow-[3px_3px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-neu"
+              >Perpanjang Sesi</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import NeuCard from '../components/ui/NeuCard.vue';
 import NeuTag from '../components/ui/NeuTag.vue';
@@ -639,13 +701,75 @@ import {
   updateTip,
   getSubmissions,
   logout,
-  uploadImage
+  uploadImage,
+  updateActivity,
+  getSessionRemainingMs,
+  SESSION_TIMEOUT_MS,
+  SESSION_WARN_BEFORE_MS
 } from '../services/supabase';
 
 const router = useRouter();
 const activeTab = ref('projects');
 const isConfigured = ref(false);
 const isLoading = ref(true);
+
+// --- Session Security ---
+const showSessionWarning = ref(false);
+const sessionCountdownMs = ref(SESSION_WARN_BEFORE_MS);
+let sessionCheckInterval: ReturnType<typeof setInterval> | null = null;
+let countdownInterval: ReturnType<typeof setInterval> | null = null;
+
+const sessionCountdownDisplay = computed(() => {
+  const totalSec = Math.max(0, Math.ceil(sessionCountdownMs.value / 1000));
+  const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
+  const s = (totalSec % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+});
+
+function onUserActivity() {
+  if (!showSessionWarning.value) {
+    updateActivity();
+  }
+}
+
+function extendSession() {
+  updateActivity();
+  showSessionWarning.value = false;
+  sessionCountdownMs.value = SESSION_WARN_BEFORE_MS;
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+    countdownInterval = null;
+  }
+}
+
+function startSessionCheck() {
+  // Check setiap 30 detik apakah sudah mendekati expire
+  sessionCheckInterval = setInterval(() => {
+    const remaining = getSessionRemainingMs();
+    if (remaining <= 0) {
+      // Sudah expired — logout paksa
+      if (sessionCheckInterval) clearInterval(sessionCheckInterval);
+      if (countdownInterval) clearInterval(countdownInterval);
+      handleLogout();
+      return;
+    }
+    if (remaining <= SESSION_WARN_BEFORE_MS && !showSessionWarning.value) {
+      // Tampilkan warning
+      showSessionWarning.value = true;
+      sessionCountdownMs.value = remaining;
+      countdownInterval = setInterval(() => {
+        const rem = getSessionRemainingMs();
+        sessionCountdownMs.value = rem;
+        if (rem <= 0) {
+          if (countdownInterval) clearInterval(countdownInterval);
+          if (sessionCheckInterval) clearInterval(sessionCheckInterval);
+          showSessionWarning.value = false;
+          handleLogout();
+        }
+      }, 1000);
+    }
+  }, 30_000);
+}
 
 const projects = ref<any[]>([]);
 const tips = ref<any[]>([]);
@@ -884,6 +1008,19 @@ async function loadAll() {
 
 onMounted(() => {
   loadAll();
+  // Mulai session security
+  updateActivity();
+  startSessionCheck();
+  // Pantau aktivitas user
+  const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+  events.forEach(e => window.addEventListener(e, onUserActivity, { passive: true }));
+});
+
+onUnmounted(() => {
+  if (sessionCheckInterval) clearInterval(sessionCheckInterval);
+  if (countdownInterval) clearInterval(countdownInterval);
+  const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+  events.forEach(e => window.removeEventListener(e, onUserActivity));
 });
 
 // ---- ADD Project ----
@@ -1064,3 +1201,25 @@ function formatDate(isoString: string) {
   }
 }
 </script>
+
+<style scoped>
+/* Session Warning Modal Transition */
+.session-modal-enter-active,
+.session-modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+.session-modal-enter-active .relative,
+.session-modal-leave-active .relative {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.session-modal-enter-from,
+.session-modal-leave-to {
+  opacity: 0;
+}
+.session-modal-enter-from .relative {
+  transform: translateY(-24px) scale(0.96);
+}
+.session-modal-leave-to .relative {
+  transform: translateY(-16px) scale(0.97);
+}
+</style>

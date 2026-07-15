@@ -112,16 +112,42 @@ export function saveLookerStudioUrl(url: string) {
   localStorage.setItem('looker_studio_url', url);
 }
 
+// --- SESSION MANAGEMENT ---
+export const SESSION_TIMEOUT_MS = 3 * 60 * 60 * 1000; // 3 jam
+export const SESSION_WARN_BEFORE_MS = 5 * 60 * 1000;  // warning 5 menit sebelum expire
+
+export function updateActivity() {
+  localStorage.setItem('last_activity', Date.now().toString());
+}
+
+export function getLastActivity(): number | null {
+  const val = localStorage.getItem('last_activity');
+  return val ? parseInt(val, 10) : null;
+}
+
+export function getSessionRemainingMs(): number {
+  const last = getLastActivity();
+  if (!last) return 0;
+  const elapsed = Date.now() - last;
+  return Math.max(0, SESSION_TIMEOUT_MS - elapsed);
+}
+
+export function clearActivity() {
+  localStorage.removeItem('last_activity');
+}
+
 // --- AUTHENTICATION SERVICE ---
 export async function login(email: string, pass: string) {
   if (supabase) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
     if (error) throw error;
+    updateActivity();
     return data;
   } else {
     // Mock authentication for Local Fallback mode
     if (email === 'admin@admin.com' && pass === 'admin') {
       localStorage.setItem('mock_auth_session', 'true');
+      updateActivity();
       return { user: { email } };
     }
     throw new Error('Invalid mock credentials. Try admin@admin.com / admin');
@@ -134,6 +160,7 @@ export async function logout() {
   } else {
     localStorage.removeItem('mock_auth_session');
   }
+  clearActivity();
 }
 
 export async function getSession() {
@@ -188,19 +215,34 @@ export async function uploadImage(file: File): Promise<string> {
 }
 
 // --- PROJECTS SERVICE ---
+const _projectsCache: { data: any[] | null; ts: number } = { data: null, ts: 0 };
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 menit
+
 export async function getProjects() {
+  // Jika cache masih valid, langsung return
+  if (_projectsCache.data && Date.now() - _projectsCache.ts < CACHE_TTL_MS) {
+    return _projectsCache.data;
+  }
   if (supabase) {
     const { data, error } = await supabase
       .from('projects')
       .select('*')
       .order('created_at', { ascending: false });
-    if (!error && data) return data;
+    if (!error && data) {
+      _projectsCache.data = data;
+      _projectsCache.ts = Date.now();
+      return data;
+    }
     console.error('Supabase getProjects error, falling back to LocalStorage:', error);
   }
-  return JSON.parse(localStorage.getItem('portofolio_projects') || '[]');
+  const local = JSON.parse(localStorage.getItem('portofolio_projects') || '[]');
+  _projectsCache.data = local;
+  _projectsCache.ts = Date.now();
+  return local;
 }
 
 export async function addProject(project: { title: string; description: string; tags: string[]; demo_url: string; github_url: string; category: string; image_url?: string }) {
+  _projectsCache.data = null; // invalidate cache
   if (supabase) {
     const { data, error } = await supabase
       .from('projects')
@@ -218,6 +260,7 @@ export async function addProject(project: { title: string; description: string; 
 }
 
 export async function deleteProject(id: number | string) {
+  _projectsCache.data = null; // invalidate cache
   if (supabase) {
     const { error } = await supabase.from('projects').delete().eq('id', id);
     if (!error) return true;
@@ -231,6 +274,7 @@ export async function deleteProject(id: number | string) {
 }
 
 export async function updateProject(id: number | string, project: { title: string; description: string; tags: string[]; demo_url: string; github_url: string; category: string; image_url?: string }) {
+  _projectsCache.data = null; // invalidate cache
   if (supabase) {
     const { data, error } = await supabase
       .from('projects')
@@ -249,19 +293,33 @@ export async function updateProject(id: number | string, project: { title: strin
 }
 
 // --- TIPS SERVICE ---
+const _tipsCache: { data: any[] | null; ts: number } = { data: null, ts: 0 };
+
 export async function getTips() {
+  // Jika cache masih valid, langsung return
+  if (_tipsCache.data && Date.now() - _tipsCache.ts < CACHE_TTL_MS) {
+    return _tipsCache.data;
+  }
   if (supabase) {
     const { data, error } = await supabase
       .from('tips')
       .select('*')
       .order('created_at', { ascending: false });
-    if (!error && data) return data;
+    if (!error && data) {
+      _tipsCache.data = data;
+      _tipsCache.ts = Date.now();
+      return data;
+    }
     console.error('Supabase getTips error, falling back to LocalStorage:', error);
   }
-  return JSON.parse(localStorage.getItem('portofolio_tips') || '[]');
+  const local = JSON.parse(localStorage.getItem('portofolio_tips') || '[]');
+  _tipsCache.data = local;
+  _tipsCache.ts = Date.now();
+  return local;
 }
 
 export async function addTip(tip: { title: string; description: string; content?: string; category: string; url: string; image_url?: string }) {
+  _tipsCache.data = null; // invalidate cache
   if (supabase) {
     const { data, error } = await supabase
       .from('tips')
@@ -279,6 +337,7 @@ export async function addTip(tip: { title: string; description: string; content?
 }
 
 export async function deleteTip(id: number | string) {
+  _tipsCache.data = null; // invalidate cache
   if (supabase) {
     const { error } = await supabase.from('tips').delete().eq('id', id);
     if (!error) return true;
@@ -292,6 +351,7 @@ export async function deleteTip(id: number | string) {
 }
 
 export async function updateTip(id: number | string, tip: { title: string; description: string; content?: string; category: string; url: string; image_url?: string }) {
+  _tipsCache.data = null; // invalidate cache
   if (supabase) {
     const { data, error } = await supabase
       .from('tips')
