@@ -33,7 +33,7 @@
       <router-link @click="isOpen = false" to="/projects" active-class="!text-yellow" class="font-body font-bold text-xs uppercase tracking-wider text-white py-2 hover:text-yellow transition-neu">PROJECTS</router-link>
       <router-link @click="isOpen = false" to="/tips" active-class="!text-yellow" class="font-body font-bold text-xs uppercase tracking-wider text-white py-2 hover:text-yellow transition-neu">TIPS & TRICKS</router-link>
       <router-link @click="isOpen = false" to="/submission" active-class="!text-yellow" class="font-body font-bold text-xs uppercase tracking-wider text-white py-2 hover:text-yellow transition-neu">SUBMISSION</router-link>
-      <a href="https://wa.me/6285647359433" target="_blank" rel="noopener noreferrer" @click="isOpen = false" class="font-body font-bold text-xs uppercase tracking-wider bg-yellow text-black px-4 py-2 mt-2 w-fit border-2 border-transparent hover:bg-white transition-neu">CONTACT</a>
+      <a href="https://wa.me/62895340071309" target="_blank" rel="noopener noreferrer" @click="isOpen = false" class="font-body font-bold text-xs uppercase tracking-wider bg-yellow text-black px-4 py-2 mt-2 w-fit border-2 border-transparent hover:bg-white transition-neu">CONTACT</a>
     </div>
   </nav>
 </template>

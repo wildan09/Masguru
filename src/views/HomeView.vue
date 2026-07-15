@@ -41,7 +41,7 @@
               </svg>
               VIEW PROJECTS
             </NeuButton>
-            <a href="https://wa.me/6285647359433" target="_blank" rel="noopener noreferrer">
+            <a href="https://wa.me/62895340071309" target="_blank" rel="noopener noreferrer">
               <NeuButton variant="secondary" size="lg">CONTACT ME</NeuButton>
             </a>
           </div>
