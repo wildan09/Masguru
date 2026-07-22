@@ -61,7 +61,7 @@ let supabase: SupabaseClient | null = null;
 
 export function initSupabase() {
   const envUrl = import.meta.env.VITE_SUPABASE_URL;
-  const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const envKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   const localUrl = localStorage.getItem('supabase_url');
   const localKey = localStorage.getItem('supabase_anon_key');
 
@@ -90,7 +90,7 @@ export function isSupabaseConfigured(): boolean {
 export function getSupabaseKeys() {
   return {
     url: import.meta.env.VITE_SUPABASE_URL || localStorage.getItem('supabase_url') || '',
-    key: import.meta.env.VITE_SUPABASE_ANON_KEY || localStorage.getItem('supabase_anon_key') || ''
+    key: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || localStorage.getItem('supabase_anon_key') || ''
   };
 }
 
